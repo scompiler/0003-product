@@ -1,0 +1,19 @@
+$margin-inline-start: margin-left;
+
+@mixin scope() {
+    [dir="ltr"] {
+        @content;
+    }
+
+    $margin-inline-start: margin-right !global;
+
+    [dir="rtl"] {
+        @content;
+    }
+
+    $margin-inline-start: margin-left !global;
+}
+
+@mixin margin-inline-start($value) {
+    #{$margin-inline-start}: $value;
+}

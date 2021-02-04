@@ -1,0 +1,10 @@
+@use '../direction' as dir;
+@use '../custom-variables' as vs;
+
+.st-post-card {
+    border: 1px solid vs.$product-card-border-color;
+
+    @include dir.scope {
+        #{dir.$margin-inline-start}: 10px;
+    }
+}
