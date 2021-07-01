@@ -18,6 +18,8 @@ import React, { ReactNode } from 'react';
 import svgr from '@svgr/core';
 import { transpile } from 'typescript';
 import webpack from 'webpack';
+import { ErrorPage } from './ErrorPage';
+import { TSError } from 'ts-node';
 
 export interface Config {
     port: number;
@@ -138,10 +140,31 @@ export function createServer(config: Config) {
 
         delete require.cache[pagePath];
 
-        // TODO: check if not exists return 404
-        const Page = require(pagePath).default;
-        const pageId = nextPageId();
+        let Page;
 
+        try {
+            Page = require(pagePath).default;
+        } catch (error) {
+            let errorText = 'Undefined error';
+
+            if (['MODULE_NOT_FOUND', 'ENOENT'].includes(error.code)) {
+                errorText = '404';
+            } else if (error instanceof TSError) {
+                errorText = 'Typescript error';
+            }
+
+            let html = '<!DOCTYPE html>' + ReactDomServer.renderToStaticMarkup(
+                <ErrorPage text={errorText} />
+            );
+
+            res.send(html);
+
+            console.dir(error);
+
+            throw error;
+        }
+
+        const pageId = nextPageId();
         const context: PageContextValue = {
             id: pageId,
             pageUrl: req.url,
