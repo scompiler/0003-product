@@ -210,7 +210,8 @@ export function createServer(config: Config) {
             address = address.port.toString();
         }
 
-        console.log(`Server started on port ${address} :)`);
+        console.log(`Server started: http://localhost:${address}/`);
+        console.log('');
     });
 
     /*
