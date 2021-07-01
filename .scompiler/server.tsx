@@ -101,42 +101,8 @@ export function createServer(config: Config) {
     const blankImage = (async () => await new Jimp(1, 1, '#e5e5e5').getBufferAsync(Jimp.MIME_JPEG))();
     const errorImage = (async () => await new Jimp(1, 1, '#ff0000').getBufferAsync(Jimp.MIME_JPEG))();
 
-    wss.on('connection', (ws) => {
-        ws.on('message', (message) => {
-            if (typeof message !== 'string') {
-                return;
-            }
-
-            try {
-                const data = JSON.parse(message);
-
-                if (data.command === 'ready') {
-                    readyPages.push(data.pageId);
-
-                    // console.log(`Page ${data.pageId} is ready`);
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        });
-    });
-
-    app.use(
-        express.static(config.distDir)
-    );
-    app.get('/.scompiler/watcher.js', (req, res) => {
-        res.send(fs.readFileSync(path.join(__dirname, 'watcher.js')));
-    });
-    app.get('/.scompiler/blank.jpg', async (req, res) => {
-        res.contentType(Jimp.MIME_JPEG);
-        res.end(await blankImage, 'binary');
-    });
-    app.get('/.scompiler/error.jpg', async (req, res) => {
-        res.contentType(Jimp.MIME_JPEG);
-        res.end(await errorImage, 'binary');
-    });
-    app.get(/\.html$/, (req, res) => {
-        const pagePath = path.resolve(path.join(config.pagesDir, req.path.replace(/\.html$/, '.tsx')));
+    const handlePageRequest = function(pageName, req, res) {
+        const pagePath = path.resolve(path.join(config.pagesDir, pageName.replace(/\.html$/, '.tsx')));
 
         delete require.cache[pagePath];
 
@@ -194,6 +160,47 @@ export function createServer(config: Config) {
         console.timeEnd(`Page ${req.url} generated in`);
 
         res.send(html);
+    }
+
+    wss.on('connection', (ws) => {
+        ws.on('message', (message) => {
+            if (typeof message !== 'string') {
+                return;
+            }
+
+            try {
+                const data = JSON.parse(message);
+
+                if (data.command === 'ready') {
+                    readyPages.push(data.pageId);
+
+                    // console.log(`Page ${data.pageId} is ready`);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+    });
+
+    app.use(
+        express.static(config.distDir)
+    );
+    app.get('/', (req, res) => {
+        handlePageRequest('index.html', req, res);
+    })
+    app.get('/.scompiler/watcher.js', (req, res) => {
+        res.send(fs.readFileSync(path.join(__dirname, 'watcher.js')));
+    });
+    app.get('/.scompiler/blank.jpg', async (req, res) => {
+        res.contentType(Jimp.MIME_JPEG);
+        res.end(await blankImage, 'binary');
+    });
+    app.get('/.scompiler/error.jpg', async (req, res) => {
+        res.contentType(Jimp.MIME_JPEG);
+        res.end(await errorImage, 'binary');
+    });
+    app.get(/\.html$/, (req, res) => {
+        handlePageRequest(req.path, req, res);
     });
 
     server.listen(config.port, () => {
