@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, useContext } from 'react';
-import PageContext from '../../.scompiler/PageContext';
+import PageContext from '../../../.scompiler/PageContext';
 
 type Props = PropsWithChildren<{}>;
 

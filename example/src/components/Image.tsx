@@ -1,5 +1,5 @@
 import React from 'react';
-import { useResize } from '../../.scompiler/hooks';
+import { useResize } from '../../../.scompiler/hooks';
 
 interface Props {
     src: string,

@@ -1,10 +1,20 @@
 {
   "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
     "esModuleInterop": true,
-    "jsx": "react"
+    "jsx": "react",
+    "outDir": "./package",
+    "declaration": true
   },
   "include": [
     "**/*.ts",
     "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "example/src",
+    "package",
+    "example/index.tsx"
   ]
 }
