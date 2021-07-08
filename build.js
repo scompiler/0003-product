@@ -22,4 +22,4 @@ const packageJson = {
     license: basePackageJson.license,
 };
 
-fs.writeFileSync(path.join('package', 'package.json'), JSON.stringify(packageJson));
+fs.writeFileSync(path.join('package', 'package.json'), JSON.stringify(packageJson, null, 4));
