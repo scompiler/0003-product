@@ -1,25 +1,25 @@
 import isPathInside from 'is-path-inside';
 import process from 'process';
-import rimraf from 'rimraf';
 import express from 'express';
 import http from 'http';
 import ws from 'ws';
 import Jimp from 'jimp';
 import fs from 'fs';
 import path from 'path';
-import PageContext, { PageContextValue } from './PageContext';
 import ReactDomServer from 'react-dom/server';
 import chokidar from 'chokidar';
-import sass from 'sass';
-import globParent from 'glob-parent';
 import Module from 'module';
-import { GlobSync } from 'glob';
 import React, { ReactNode } from 'react';
 import svgr from '@svgr/core';
 import { transpile } from 'typescript';
 import webpack from 'webpack';
 import { ErrorPage } from './ErrorPage';
 import { TSError } from 'ts-node';
+import { CopyModule } from "./modules/copy";
+import { ImagesModule } from "./modules/images";
+import { SassModule } from "./modules/sass";
+import { PagesModule } from "./modules/pages";
+import { JsModule } from "./modules/js";
 
 export interface Config {
     port: number;
@@ -92,7 +92,9 @@ export function createServer(config: Config) {
         throw new Error('Dist directory should be inside current working directory.');
     }
 
-    rimraf.sync(config.distDir);
+    if (fs.existsSync(config.distDir)) {
+        fs.rmdirSync(config.distDir, {recursive: true});
+    }
 
     const app = express();
     const server = http.createServer(app);
@@ -103,13 +105,18 @@ export function createServer(config: Config) {
 
     const handlePageRequest = function(pageName, req, res) {
         const pagePath = path.resolve(path.join(config.pagesDir, pageName.replace(/\.html$/, '.tsx')));
+        const pageId = nextPageId();
+        let html;
 
-        delete require.cache[pagePath];
-
-        let Page;
+        console.time(`Page ${req.url} generated in`);
 
         try {
-            Page = require(pagePath).default;
+            html = pagesModule.render(pagePath, {
+                pageId: pageId,
+                pageUrl: req.url,
+                resizeFn: imagesModule.makeResizeFn(),
+                svgFn: makeSvgFn(config.iconResolver || (() => null)),
+            });
         } catch (error) {
             let errorText = 'Undefined error';
 
@@ -128,36 +135,9 @@ export function createServer(config: Config) {
             console.dir(error);
 
             throw error;
+        } finally {
+            console.timeEnd(`Page ${req.url} generated in`);
         }
-
-        const pageId = nextPageId();
-        const context: PageContextValue = {
-            id: pageId,
-            pageUrl: req.url,
-            resize: makeResizeFn(req.url, pageId),
-            svg: makeSvgFn(config.iconResolver || (() => null)),
-        };
-
-        console.time(`Page ${req.url} generated in`);
-
-        let html = ReactDomServer.renderToStaticMarkup(
-            <PageContext.Provider value={context}>
-                <Page />
-            </PageContext.Provider>
-        );
-
-        // TODO: here we should know about all images: context.usedImages
-
-        if (Page.doctype !== false) {
-            html = `<!DOCTYPE html>${html}`;
-        }
-
-        // html = prettier.format(html, {
-        //     parser: "html",
-        //     tabWidth: 4,
-        // });
-
-        console.timeEnd(`Page ${req.url} generated in`);
 
         res.send(html);
     }
@@ -225,13 +205,6 @@ export function createServer(config: Config) {
             command: 'reload',
         });
     }
-    function makeDir(dirPath) {
-        if (fs.existsSync(dirPath)) {
-            return;
-        }
-
-        fs.mkdirSync(dirPath, {recursive: true});
-    }
 
     /*
     // Components
@@ -281,284 +254,28 @@ export function createServer(config: Config) {
     });
 
     /*
+    // Pages
+    */
+    const pagesModule = new PagesModule(config, fs);
+
+    /*
     // SASS
     */
-    config.sass.forEach(entry => {
-        const entryWatcher = chokidar.watch(entry.src);
-        const depsWatcher = chokidar.watch([], {ignoreInitial: true});
-        const registry: {[depPath: string]: string[]} = {};
+    const sassModule = new SassModule(config, fs, message => sendAll(message));
 
-        function setEntryDeps(entryPath: string, deps: string[]): void {
-            deps.forEach(depPath => {
-                if (!registry[depPath]) {
-                    registry[depPath] = [entryPath];
-
-                    depsWatcher.add(depPath);
-                } else if (!registry[depPath].includes(entryPath)) {
-                    registry[depPath].push(entryPath);
-                }
-            });
-
-            Object.keys(registry).forEach(depPath => {
-                if (deps.includes(depPath)) {
-                    return;
-                }
-                if (!registry[depPath]) {
-                    return;
-                }
-
-                registry[depPath] = registry[depPath].filter(x => x !== entryPath);
-
-                if (registry[depPath].length === 0) {
-                    delete registry[depPath];
-
-                    depsWatcher.unwatch(depPath);
-                }
-            });
-        }
-
-        function render(entryPath) {
-            const relativePath = path.join(
-                entry.dst,
-                path.relative(
-                    globParent(entry.src),
-                    path.resolve(entryPath),
-                ).replace(/\.scss$/, '.css'),
-            );
-            const publicPath = '/' + relativePath.replace('\\', '/');
-            const localPath = path.join(config.distDir, relativePath);
-
-            try {
-                console.time(`Style ${publicPath} compiled in`);
-
-                const result = sass.renderSync({file: entryPath});
-
-                makeDir(path.dirname(localPath));
-
-                fs.writeFileSync(localPath, result.css);
-
-                sendAll({
-                    command: 'replaceCss',
-                    file: [publicPath],
-                });
-
-                return result.stats.includedFiles.filter(x => x !== path.resolve(entryPath));
-            } catch (error) {
-                if ('formatted' in error && typeof error.formatted === 'string') {
-                    console.error(error.formatted);
-
-                    if (typeof error.file === 'string' && error.file !== path.resolve(entryPath)) {
-                        return [error.file];
-                    }
-                } else {
-                    console.error(error);
-                }
-
-                return [];
-            } finally {
-                console.timeEnd(`Style ${publicPath} compiled in`);
-            }
-        }
-
-        function onEntryChange(entryPath): void {
-            const deps = render(entryPath);
-
-            setEntryDeps(entryPath, deps);
-        }
-
-        entryWatcher.on('add', onEntryChange);
-        entryWatcher.on('change', onEntryChange);
-        entryWatcher.on('unlink', (entryPath) => setEntryDeps(entryPath, []));
-
-        function onDepChange(depPath): void {
-            const entryPaths = registry[depPath] || [];
-
-            entryPaths.forEach(onEntryChange);
-        }
-
-        depsWatcher.on('add', onDepChange);
-        depsWatcher.on('change', onDepChange);
-        depsWatcher.on('unlink', onDepChange);
-    });
+    sassModule.process(true).then();
 
     /*
     // Copy
     */
-    config.copy.forEach(entry => {
-        const entryPaths = new GlobSync(entry.src);
+    const copyModule = new CopyModule(config, fs, () => reload());
 
-        function getLocalPath(srcPath) {
-            const relativePath = path.relative(globParent(entry.src), srcPath);
-            const localPath = path.join(config.distDir, entry.dst, relativePath);
-
-            if (!isPathInside(localPath, process.cwd())) {
-                throw new Error('The file path must be a child of the current working directory.');
-            }
-
-            return path.join(config.distDir, entry.dst, relativePath);
-        }
-
-        function copy(srcPath) {
-            const localPath = getLocalPath(srcPath);
-
-            if (fs.existsSync(srcPath) && fs.lstatSync(srcPath).isDirectory()) {
-                makeDir(localPath);
-            } else {
-                makeDir(path.dirname(localPath));
-
-                fs.copyFileSync(srcPath, localPath);
-            }
-        }
-
-        entryPaths.found.forEach(entryPath => copy(entryPath));
-
-        if (!entry.watch) {
-            return;
-        }
-
-        const watcher = chokidar.watch(entry.src, {ignoreInitial: true});
-
-        function onChange(entryPath: string) {
-            copy(entryPath);
-
-            reload();
-        }
-        function onUnlink(entryPath: string) {
-            const localPath = getLocalPath(entryPath);
-
-            if (fs.existsSync(localPath)) {
-                rimraf.sync(localPath);
-            }
-
-            reload();
-        }
-
-        watcher.on('add', onChange);
-        watcher.on('change', onChange);
-        watcher.on('unlink', onUnlink);
-    });
+    copyModule.process(true).then();
 
     /*
     // Images
     */
-    const imagesRegistry: {
-        originalPath: string;
-        resizedPath: string;
-        currentPath: string;
-        pages: string[];
-    }[] = [];
-    const imagesCache: {[publicPath: string]: string[]} = {};
-    function getFileName(src, w, h) {
-        const extname = path.extname(src);
-        const filename = path.basename(src, extname);
-        const dirname = path.dirname(src).replace('\\', '/');
-        const prefix = (w !== -1 || h !== -1) ? `-${w}x${h}` : '';
-
-        return `${dirname}/${filename}${prefix}${extname}`;
-    }
-    async function resize(src, w, h) {
-        const image = await Jimp.read(src);
-
-        let fn;
-
-        if (w === -1 || h === -1) {
-            fn = image.resize(w === -1 ? Jimp.AUTO : w, h === -1 ? Jimp.AUTO : w);
-        } else {
-            fn = image.cover(w, h);
-        }
-
-        return await fn.getBufferAsync(image.getMIME());
-    }
-    function makeResizeFn(pagePath: string, pageId: number) {
-        return (publicPath, w, h) => {
-            publicPath = path.normalize(publicPath);
-
-            const imagesRoot = path.normalize(`/${config.images.dst}`);
-
-            if (!isPathInside(publicPath, imagesRoot)) {
-                throw new Error('Wrong path');
-            }
-
-            const resizedPublicPath = getFileName(publicPath, w, h);
-            const placeholder = '/.scompiler/blank.jpg?id=' + Buffer.from(resizedPublicPath).toString('base64');
-            const errorImage = '/.scompiler/error.jpg?id=' + Buffer.from(resizedPublicPath).toString('base64');
-            const needResize = w !== -1 || h !== -1;
-
-            const relativePath = path.relative(imagesRoot, publicPath);
-            const srcPath = path.join(config.images.src, relativePath);
-            const dstPath = path.join(config.distDir, resizedPublicPath);
-
-            let record = imagesRegistry.find(x => x.originalPath === publicPath && x.resizedPath === resizedPublicPath);
-
-            if (!record) {
-                record = {
-                    originalPath: publicPath,
-                    resizedPath: resizedPublicPath,
-                    currentPath: placeholder,
-                    pages: [pagePath],
-                };
-
-                imagesRegistry.push(record);
-            } else {
-
-            }
-
-            if (!fs.existsSync(srcPath)) {
-                return errorImage;
-            }
-
-            if (fs.existsSync(dstPath)) {
-                // TODO: invalidate cache
-                return resizedPublicPath;
-            }
-
-            if (needResize) {
-                resize(srcPath, w, h).then(buffer => {
-                    makeDir(path.dirname(dstPath));
-
-                    fs.writeFile(dstPath, buffer, (err) => {
-                        if (err) {
-                            throw err;
-                        }
-
-                        // nextPageId.current();
-
-                        // TODO: image maybe resized before browser connect to the
-                        setTimeout(() => {
-                            sendAll({
-                                replaceImage: {
-                                    oldPath: placeholder,
-                                    newPath: resizedPublicPath,
-                                },
-                            });
-                        }, 3000);
-                    });
-                });
-            } else {
-                makeDir(path.dirname(dstPath));
-
-                fs.copyFile(srcPath, dstPath, (err) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    // TODO: image maybe resized before browser connect to the
-                    setTimeout(() => {
-                        sendAll({
-                            replaceImage: {
-                                oldPath: placeholder,
-                                newPath: resizedPublicPath,
-                            },
-                        });
-                    }, 3000);
-                });
-            }
-
-            // TODO: start watch original file.
-
-            return placeholder;
-        };
-    }
+    const imagesModule = new ImagesModule(config, fs, message => sendAll(message));
 
     /*
     // Icons
@@ -578,32 +295,7 @@ export function createServer(config: Config) {
     /*
     // JavaScript
     */
-    (config.js || []).forEach(entry => {
-        // TODO: Watch.
-        // TODO: Lazy.
-        // TODO: Auto-reload.
+    const jsModule = new JsModule(config, fs);
 
-        const webpackConfig: webpack.Configuration = {
-            entry: path.resolve(entry.src),
-            output: {
-                path: path.resolve(path.dirname(path.join(config.distDir, entry.dst))),
-                filename: path.basename(entry.dst),
-            },
-        };
-
-        webpack(webpackConfig, (err, stats) => {
-            if (err || stats.hasErrors()) {
-                // [Handle errors here](#error-handling)
-
-                if (err) {
-                    console.error(err);
-                } else {
-                    console.error(stats.toString());
-                }
-
-                return;
-            }
-            // Done processing
-        })
-    });
+    jsModule.process().then();
 }

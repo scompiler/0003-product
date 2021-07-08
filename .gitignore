@@ -1,4 +1,5 @@
 /.idea
 /example/dist
+/example/build
 /node_modules
 /package

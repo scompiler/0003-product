@@ -13,8 +13,7 @@
   ],
   "exclude": [
     "node_modules",
-    "example/src",
-    "package",
-    "example/index.tsx"
+    "example",
+    "package"
   ]
 }
