@@ -27,7 +27,7 @@ export class PagesModule {
 
         entryPaths.found.forEach(entryPath => {
             const relativePath = path.join('/', path.relative(globParent(glob), path.resolve(entryPath.replace(/\.tsx$/, '.html'))));
-            const html = this.render(entryPath, this.getPageContext());
+            const html = this.render(path.resolve(entryPath), this.getPageContext());
 
             if (!this.fs.existsSync(path.dirname(relativePath))) {
                 makeDir(this.fs, path.dirname(relativePath));
