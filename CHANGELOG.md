@@ -1,3 +1,11 @@
+## Version 0.4.0 — 2021-07-09
+
+- feat: add component for rendering HTML comments
+- feat: add the ability to automatically include a list of all scripts and styles needed during development
+- feat: add the ability to specify in the config the variables available when rendering pages
+- fix: save pages relative to the destination directory specified in the config
+
+
 ## Version 0.3.2 — 2021-07-09
 
 - fix: when trying to resize an external image, instead of throwing an exception, return the original image path
