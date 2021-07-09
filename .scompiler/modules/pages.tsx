@@ -1,5 +1,5 @@
 import { Config } from "../server";
-import { Filesystem } from "../fs";
+import { Filesystem, makeDir } from "../fs";
 import PageContext, { PageContextValue } from "../PageContext";
 import ReactDomServer from "react-dom/server";
 import React, { ReactNode } from "react";
@@ -22,12 +22,16 @@ export class PagesModule {
     ) { }
 
     async process(watch = false) {
-        const glob = path.join(this.config.pagesDir, '**', '*');
+        const glob = path.join(this.config.pagesDir, '**', '*.tsx');
         const entryPaths = new GlobSync(glob);
 
         entryPaths.found.forEach(entryPath => {
             const relativePath = path.join('/', path.relative(globParent(glob), path.resolve(entryPath.replace(/\.tsx$/, '.html'))));
             const html = this.render(entryPath, this.getPageContext());
+
+            if (!this.fs.existsSync(path.dirname(relativePath))) {
+                makeDir(this.fs, path.dirname(relativePath));
+            }
 
             this.fs.writeFileSync(relativePath, html);
         });
