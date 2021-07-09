@@ -26,7 +26,7 @@ export class PagesModule {
         const entryPaths = new GlobSync(glob);
 
         entryPaths.found.forEach(entryPath => {
-            const relativePath = path.join('/', path.relative(globParent(glob), path.resolve(entryPath.replace(/\.tsx$/, '.html'))));
+            const relativePath = path.join(this.config.distDir, path.relative(globParent(glob), path.resolve(entryPath.replace(/\.tsx$/, '.html'))));
             const html = this.render(path.resolve(entryPath), this.getPageContext());
 
             if (!this.fs.existsSync(path.dirname(relativePath))) {
