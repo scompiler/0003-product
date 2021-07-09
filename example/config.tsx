@@ -11,6 +11,7 @@ const config: Config = {
     ],
     copy: [
         {src: __dirname + '/src/js/**/*', dst: 'js', watch: true},
+        {src: __dirname + '/src/external-images/**/*', dst: 'external-images', watch: true},
         {src: 'node_modules/jquery/dist/**/*', dst: 'vendor/jquery'},
     ],
     images: {

@@ -37,7 +37,7 @@ export class ImagesModule {
             const imagesRoot = path.normalize(`/${this.config.images.dst}`);
 
             if (!isPathInside(publicPath, imagesRoot)) {
-                throw new Error('Wrong path');
+                return publicPath.replace('\\', '/');
             }
 
             const resizedPublicPath = this.getResizedImagePath(publicPath, w, h);

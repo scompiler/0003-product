@@ -7,6 +7,7 @@ export default function() {
         <Layout>
             Kos
             <Image src="/images/product-1.jpg" width={50} height={100} />
+            <Image src="/external-images/product-1.jpg" width={50} height={100} />
         </Layout>
     );
 }
