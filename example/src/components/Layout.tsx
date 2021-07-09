@@ -1,5 +1,6 @@
 import React, { PropsWithChildren, useContext } from 'react';
 import PageContext from '../../../.scompiler/PageContext';
+import Comment from '../../../.scompiler/components/Comment';
 import { useLinks, useScripts, useStyles, useVars } from "../../../.scompiler/hooks";
 
 type Props = PropsWithChildren<{}>;
@@ -23,7 +24,9 @@ export default function(props: Props) {
                 {styles.map((props, idx) => <style key={idx} {...props} />)}
             </head>
             <body>
+                <Comment value="body" />{/* body */}
                 {children}
+                <Comment value="body / end" />
 
                 {scripts.map((props, idx) => <script key={idx} {...props} />)}
             </body>

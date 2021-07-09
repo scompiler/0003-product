@@ -6,6 +6,7 @@ import React, { ReactNode } from "react";
 import path from "path";
 import { GlobSync } from "glob";
 import globParent from "glob-parent";
+import { Base64 } from "js-base64";
 
 export type RenderPageOptions = {
     pageId: number;
@@ -70,6 +71,10 @@ export class PagesModule {
         if (Page.doctype !== false) {
             html = `<!DOCTYPE html>${html}`;
         }
+
+        html = html.replace(/&lt;!--PULSAR_COMMENT\[([A-Za-z0-9+/=]*)]--&gt;/g, (_, comment) => {
+            return `<!-- ${Base64.decode(comment)} -->`;
+        });
 
         // html = prettier.format(html, {
         //     parser: "html",
