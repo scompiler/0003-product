@@ -21,6 +21,9 @@ const config: Config = {
     js: [
         {src: __dirname + '/src/test.js', dst: 'test.js'},
     ],
+    vars: {
+        dir: 'ltr',
+    },
 };
 
 export default config;

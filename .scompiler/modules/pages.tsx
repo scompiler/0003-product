@@ -48,6 +48,7 @@ export class PagesModule {
             pageUrl: options.pageUrl,
             resize: options.resizeFn,
             svg: options.svgFn,
+            vars: this.config.vars,
         };
 
         let html = ReactDomServer.renderToStaticMarkup(

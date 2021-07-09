@@ -46,6 +46,9 @@ export interface Config {
         config?: webpack.Configuration;
     }[];
     iconResolver?: (iconPath: string) => ReactNode;
+    vars?: {
+        [key: string]: any;
+    },
 }
 
 function requireFromString(code, filename) {

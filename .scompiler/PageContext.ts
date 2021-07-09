@@ -5,6 +5,7 @@ export interface PageContextValue {
     pageUrl: string;
     resize: (src: string, w: number, h: number) => string;
     svg: (icon: string) => ReactNode;
+    vars?: {[key: string]: any};
 }
 
 const PageContext = createContext<PageContextValue>({

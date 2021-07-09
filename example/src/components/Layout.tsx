@@ -1,14 +1,16 @@
 import React, { PropsWithChildren, useContext } from 'react';
 import PageContext from '../../../.scompiler/PageContext';
+import { useVars } from "../../../.scompiler/hooks";
 
 type Props = PropsWithChildren<{}>;
 
 export default function(props: Props) {
     const { children } = props;
     const context = useContext(PageContext);
+    const vars = useVars();
 
     return (
-        <html lang="en" data-scompiler-id={context.id}>
+        <html lang="en" dir={vars.dir || 'ltr'} data-scompiler-id={context.id}>
             <head>
                 <meta charSet="UTF-8" />
                 <title>Scompiler</title>

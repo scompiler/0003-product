@@ -32,3 +32,9 @@ export function usePageUrl(): string {
 
     return context.pageUrl;
 }
+
+export function useVars() {
+    const context = useContext(PageContext);
+
+    return context.vars || {};
+}
