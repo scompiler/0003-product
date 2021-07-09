@@ -38,3 +38,21 @@ export function useVars() {
 
     return context.vars || {};
 }
+
+export function useLinks() {
+    const context = useContext(PageContext);
+
+    return context.links;
+}
+
+export function useStyles() {
+    const context = useContext(PageContext);
+
+    return context.styles;
+}
+
+export function useScripts() {
+    const context = useContext(PageContext);
+
+    return context.scripts;
+}

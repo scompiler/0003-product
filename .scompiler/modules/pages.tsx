@@ -27,7 +27,7 @@ export class PagesModule {
 
         entryPaths.found.forEach(entryPath => {
             const relativePath = path.join(this.config.distDir, path.relative(globParent(glob), path.resolve(entryPath.replace(/\.tsx$/, '.html'))));
-            const html = this.render(path.resolve(entryPath), this.getPageContext());
+            const html = this.render(path.resolve(entryPath), this.getPageContext(), true);
 
             if (!this.fs.existsSync(path.dirname(relativePath))) {
                 makeDir(this.fs, path.dirname(relativePath));
@@ -37,10 +37,17 @@ export class PagesModule {
         });
     }
 
-    render(pagePath, options: RenderPageOptions): string {
+    render(pagePath, options: RenderPageOptions, build = false): string {
         delete require.cache[pagePath];
 
         const Page = require(pagePath).default;
+        const styles = [];
+        const scripts = [];
+
+        if (!build) {
+            styles.push({dangerouslySetInnerHTML: {__html: 'img[src^="/.scompiler/error.jpg?id="] { object-fit: fill; }'}});
+            scripts.push({src: '/.scompiler/watcher.js'});
+        }
 
         const pageId = options.pageId;
         const context: PageContextValue = {
@@ -49,6 +56,9 @@ export class PagesModule {
             resize: options.resizeFn,
             svg: options.svgFn,
             vars: this.config.vars,
+            links: [],
+            styles: styles,
+            scripts: scripts,
         };
 
         let html = ReactDomServer.renderToStaticMarkup(
