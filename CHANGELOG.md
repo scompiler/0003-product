@@ -1,3 +1,8 @@
+## Version 0.3.1 — 2021-07-09
+
+- fix: fix the error that occurs when compiling pages in sub-directories
+
+
 ## Version 0.3.0 — 2021-07-09
 
 - feat: implement build script
