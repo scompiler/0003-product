@@ -1,3 +1,9 @@
+## Version 0.3.2 — 2021-07-09
+
+- fix: when trying to resize an external image, instead of throwing an exception, return the original image path
+- fix: fix the error that occurs when trying to require a page using a relative path
+
+
 ## Version 0.3.1 — 2021-07-09
 
 - fix: fix the error that occurs when compiling pages in sub-directories
