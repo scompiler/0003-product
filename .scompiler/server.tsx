@@ -31,6 +31,7 @@ export interface Config {
         src: string;
         dst: string;
         postProcess?: (file: Buffer) => Buffer;
+        rename?: (fileName: string) => string;
     }[];
     copy: {
         src: string;

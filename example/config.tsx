@@ -1,5 +1,6 @@
 import { Config } from "../.scompiler/server";
 import rtlcss from "rtlcss";
+import path from "path";
 
 const config: Config = {
     port: 3006,
@@ -8,12 +9,18 @@ const config: Config = {
     componentsDir: __dirname + '/src/components',
     dataDir: __dirname + '/src/data',
     sass: [
-        // {src: __dirname + '/src/scss/style.scss', dst: 'css'},
+        {src: __dirname + '/src/scss/style.scss', dst: 'css'},
         {
             src: __dirname + '/src/scss/style.scss',
             dst: 'css',
             postProcess: file => {
                 return Buffer.from(rtlcss.process(file.toString()));
+            },
+            rename: fileName => {
+                const extname = path.extname(fileName);
+                const basename = path.basename(fileName, path.extname(fileName));
+
+                return `${basename}.rtl${extname}`;
             },
         },
     ],
