@@ -30,6 +30,7 @@ export interface Config {
     sass: {
         src: string;
         dst: string;
+        postProcess?: (file: Buffer) => Buffer;
     }[];
     copy: {
         src: string;

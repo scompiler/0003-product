@@ -33,7 +33,7 @@ export class SassModule {
 
                     makeDir(this.fs, path.dirname(localPath));
 
-                    this.fs.writeFileSync(localPath, result.css);
+                    this.fs.writeFileSync(localPath, entry.postProcess ? entry.postProcess(result.css) : result.css);
 
                     this.onSendAll({
                         command: 'replaceCss',
