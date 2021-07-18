@@ -1,6 +1,7 @@
 import { Config } from "../.scompiler/server";
 import rtlcss from "rtlcss";
-import path from "path";
+import { renameFileBasename } from "../.scompiler/rxjs";
+import { map } from "rxjs";
 
 const config: Config = {
     port: 3006,
@@ -13,15 +14,10 @@ const config: Config = {
         {
             src: __dirname + '/src/scss/style.scss',
             dst: 'css',
-            postProcess: file => {
-                return Buffer.from(rtlcss.process(file.toString()));
-            },
-            rename: fileName => {
-                const extname = path.extname(fileName);
-                const basename = path.basename(fileName, path.extname(fileName));
-
-                return `${basename}.rtl${extname}`;
-            },
+            middleware: source$ => source$.pipe(
+                renameFileBasename(x => x + '.rtl'),
+                map(x => ({...x, content: Buffer.from(rtlcss.process(x.content.toString()))}))
+            ),
         },
     ],
     copy: [

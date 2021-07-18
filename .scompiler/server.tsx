@@ -20,6 +20,8 @@ import { ImagesModule } from "./modules/images";
 import { SassModule } from "./modules/sass";
 import { PagesModule } from "./modules/pages";
 import { JsModule } from "./modules/js";
+import { File } from "./types";
+import { Observable } from "rxjs";
 
 export interface Config {
     port: number;
@@ -30,8 +32,7 @@ export interface Config {
     sass: {
         src: string;
         dst: string;
-        postProcess?: (file: Buffer) => Buffer;
-        rename?: (fileName: string) => string;
+        middleware?: (source$: Observable<File>) => Observable<File>;
     }[];
     copy: {
         src: string;

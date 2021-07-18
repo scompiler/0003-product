@@ -5,6 +5,9 @@ import path from "path";
 import globParent from "glob-parent";
 import sass from "sass";
 import { GlobSync } from "glob";
+import { File } from "../types";
+import { from } from "rxjs";
+import isPathInside from "is-path-inside";
 
 export class SassModule {
     constructor(
@@ -31,16 +34,28 @@ export class SassModule {
 
                     const result = sass.renderSync({file: entryPath});
 
-                    makeDir(this.fs, path.dirname(localPath));
+                    const file: File = {
+                        content: result.css,
+                        path: localPath,
+                        dependencies: [],
+                    };
 
-                    const dirname = path.dirname(localPath);
-                    const basename = entry.rename ? entry.rename(path.basename(localPath)) : path.basename(localPath);
+                    let source$ = from([file]);
 
-                    this.fs.writeFileSync(path.join(dirname, basename), entry.postProcess ? entry.postProcess(result.css) : result.css);
+                    source$ = entry.middleware ? entry.middleware(source$) : source$;
+                    source$.subscribe(x => {
+                        if (!isPathInside(x.path, this.config.distDir)) {
+                            throw new Error('The file path must be a child of the config.distDir.');
+                        }
 
-                    this.onSendAll({
-                        command: 'replaceCss',
-                        file: [publicPath],
+                        makeDir(this.fs, path.dirname(x.path));
+
+                        this.fs.writeFileSync(x.path, x.content);
+
+                        this.onSendAll({
+                            command: 'replaceCss',
+                            file: [publicPath],
+                        });
                     });
 
                     return result.stats.includedFiles.filter(x => x !== path.resolve(entryPath));
