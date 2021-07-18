@@ -1,3 +1,10 @@
+## Version 0.5.0 — 2021-07-18
+
+- feat: rename and post-process styles via RxJS
+- feat: add the ability to rename style files
+- feat: add the ability to post-processing of style files
+
+
 ## Version 0.4.0 — 2021-07-09
 
 - feat: add component for rendering HTML comments
