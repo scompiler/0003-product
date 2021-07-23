@@ -20,6 +20,7 @@ const packageJson = {
     description: basePackageJson.description,
     author: basePackageJson.author,
     license: basePackageJson.license,
+    dependencies: basePackageJson.dependencies,
 };
 
 fs.writeFileSync(path.join('package', 'package.json'), JSON.stringify(packageJson, null, 4));
