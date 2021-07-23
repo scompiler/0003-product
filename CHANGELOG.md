@@ -1,3 +1,9 @@
+## Version 0.5.1 — 2021-07-23
+
+- build: include required NPM dependencies in the package
+- build: remove unused dependencies
+
+
 ## Version 0.5.0 — 2021-07-18
 
 - feat: rename and post-process styles via RxJS
