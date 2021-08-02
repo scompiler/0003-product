@@ -1,3 +1,8 @@
+## Version 0.5.2 — 2021-08-02
+
+- fix: include Comment component in package
+
+
 ## Version 0.5.1 — 2021-07-23
 
 - build: include required NPM dependencies in the package
