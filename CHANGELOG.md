@@ -1,3 +1,8 @@
+## Version 0.6.0 — 2021-08-04
+
+- feat: add a function to the page context that returns unique identifier within the current page
+
+
 ## Version 0.5.2 — 2021-08-02
 
 - fix: include Comment component in package
