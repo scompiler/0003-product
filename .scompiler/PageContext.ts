@@ -9,6 +9,7 @@ export interface PageContextValue {
     links: React.DetailedHTMLProps<React.LinkHTMLAttributes<HTMLLinkElement>, HTMLLinkElement>[];
     styles: React.DetailedHTMLProps<React.StyleHTMLAttributes<HTMLStyleElement>, HTMLStyleElement>[];
     scripts: React.DetailedHTMLProps<React.ScriptHTMLAttributes<HTMLScriptElement>, HTMLScriptElement>[];
+    uniqueId: (namespace?: string) => number;
 }
 
 const PageContext = createContext<PageContextValue>({
@@ -19,6 +20,7 @@ const PageContext = createContext<PageContextValue>({
     links: [],
     styles: [],
     scripts: [],
+    uniqueId: () => 0,
 });
 
 export default PageContext;

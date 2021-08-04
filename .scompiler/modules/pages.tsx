@@ -51,6 +51,7 @@ export class PagesModule {
         }
 
         const pageId = options.pageId;
+        const uniqueIds: {[namespace: string]: number|undefined} = {};
         const context: PageContextValue = {
             id: pageId,
             pageUrl: options.pageUrl,
@@ -60,6 +61,13 @@ export class PagesModule {
             links: [],
             styles: styles,
             scripts: scripts,
+            uniqueId: (namespace = '__default__') => {
+                if (!uniqueIds[namespace]) {
+                    uniqueIds[namespace] = 0;
+                }
+
+                return ++uniqueIds[namespace];
+            },
         };
 
         let html = ReactDomServer.renderToStaticMarkup(

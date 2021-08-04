@@ -56,3 +56,9 @@ export function useScripts() {
 
     return context.scripts;
 }
+
+export function useUniqueId(namespace?: string) {
+    const context = useContext(PageContext);
+
+    return context.uniqueId(namespace);
+}
