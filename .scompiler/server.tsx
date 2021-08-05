@@ -21,7 +21,7 @@ import { SassModule } from "./modules/sass";
 import { PagesModule } from "./modules/pages";
 import { JsModule } from "./modules/js";
 import { File } from "./types";
-import { Observable } from "rxjs";
+import { Observable, OperatorFunction } from "rxjs";
 
 export interface Config {
     port: number;
@@ -32,7 +32,7 @@ export interface Config {
     sass: {
         src: string;
         dst: string;
-        middleware?: (source$: Observable<File>) => Observable<File>;
+        middleware?: (source$: Observable<File>, compile: OperatorFunction<File, File>) => Observable<File>;
     }[];
     copy: {
         src: string;
