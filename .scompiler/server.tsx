@@ -28,6 +28,7 @@ export interface Config {
     port: number;
     distDir: string;
     pagesDir: string;
+    pageMiddleware?: (html: string) => Promise<string>;
     componentsDir: string;
     dataDir: string;
     sass: {
@@ -115,15 +116,15 @@ export function createServer(config: Config) {
     const blankImage = (async () => await new Jimp(1, 1, '#e5e5e5').getBufferAsync(Jimp.MIME_JPEG))();
     const errorImage = (async () => await new Jimp(1, 1, '#ff0000').getBufferAsync(Jimp.MIME_JPEG))();
 
-    const handlePageRequest = function(pageName, req, res) {
+    const handlePageRequest = async function(pageName, req, res) {
         const pagePath = path.resolve(path.join(config.pagesDir, pageName.replace(/\.html$/, '.tsx')));
         const pageId = nextPageId();
-        let html;
+        let html: string;
 
         console.time(`Page ${req.url} generated in`);
 
         try {
-            html = pagesModule.render(pagePath, {
+            html = await pagesModule.render(pagePath, {
                 pageId: pageId,
                 pageUrl: req.url,
                 resizeFn: imagesModule.makeResizeFn(),
@@ -178,7 +179,7 @@ export function createServer(config: Config) {
         express.static(config.distDir)
     );
     app.get('/', (req, res) => {
-        handlePageRequest('index.html', req, res);
+        handlePageRequest('index.html', req, res).then();
     })
     app.get('/.scompiler/watcher.js', (req, res) => {
         res.send(fs.readFileSync(path.join(__dirname, 'watcher.js')));
@@ -192,7 +193,7 @@ export function createServer(config: Config) {
         res.end(await errorImage, 'binary');
     });
     app.get(/\.html$/, (req, res) => {
-        handlePageRequest(req.path, req, res);
+        handlePageRequest(req.path, req, res).then();
     });
 
     server.listen(config.port, () => {

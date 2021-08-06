@@ -26,19 +26,19 @@ export class PagesModule {
         const glob = path.join(this.config.pagesDir, '**', '*.tsx');
         const entryPaths = new GlobSync(glob);
 
-        entryPaths.found.forEach(entryPath => {
+        await Promise.all(entryPaths.found.map(async entryPath => {
             const relativePath = path.join(this.config.distDir, path.relative(globParent(glob), path.resolve(entryPath.replace(/\.tsx$/, '.html'))));
-            const html = this.render(path.resolve(entryPath), this.getPageContext(), true);
+            const html = await this.render(path.resolve(entryPath), this.getPageContext(), true);
 
             if (!this.fs.existsSync(path.dirname(relativePath))) {
                 makeDir(this.fs, path.dirname(relativePath));
             }
 
             this.fs.writeFileSync(relativePath, html);
-        });
+        }));
     }
 
-    render(pagePath, options: RenderPageOptions, build = false): string {
+    async render(pagePath, options: RenderPageOptions, build = false): Promise<string> {
         delete require.cache[pagePath];
 
         const Page = require(pagePath).default;
@@ -84,11 +84,8 @@ export class PagesModule {
             return `<!-- ${Base64.decode(comment)} -->`;
         });
 
-        // html = prettier.format(html, {
-        //     parser: "html",
-        //     tabWidth: 4,
-        // });
+        const middleware = this.config.pageMiddleware ? this.config.pageMiddleware : async x => x;
 
-        return html;
+        return middleware(html);
     }
 }

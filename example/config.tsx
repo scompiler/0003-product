@@ -2,11 +2,18 @@ import { Config } from "../.scompiler/server";
 import rtlcss from "rtlcss";
 import { renameFileBasename } from "../.scompiler/rxjs";
 import { map, merge, mergeMap, of } from "rxjs";
+import prettier from "prettier";
 
 const config: Config = {
     port: 3006,
     distDir: __dirname + '/build',
     pagesDir: __dirname + '/src/pages',
+    pageMiddleware: async html => {
+        return prettier.format(html, {
+            parser: "html",
+            tabWidth: 4,
+        });
+    },
     componentsDir: __dirname + '/src/components',
     dataDir: __dirname + '/src/data',
     sass: [
