@@ -1,3 +1,10 @@
+## Version 0.7.0 — 2021-08-06
+
+- feat: add the ability to post-process HTML files
+- feat: add a module to compile the SVG sprite
+- feat: add the ability to preprocess SCSS files
+
+
 ## Version 0.6.0 — 2021-08-04
 
 - feat: add a function to the page context that returns unique identifier within the current page

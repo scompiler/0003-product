@@ -1,7 +1,7 @@
 {
   "name": "@scompiler/0003-product",
   "private": false,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "",
   "scripts": {
     "build": "node build.js",
