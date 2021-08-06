@@ -5,6 +5,7 @@ import { SassModule } from "./modules/sass";
 import { PagesModule } from "./modules/pages";
 import { JsModule } from "./modules/js";
 import { Filesystem } from "./fs";
+import { SvgModule } from "./modules/svg";
 
 export async function build(config: Config, memFs: Filesystem) {
     const pagesModule = new PagesModule(config, memFs, () => ({
@@ -17,6 +18,7 @@ export async function build(config: Config, memFs: Filesystem) {
     const copyModule = new CopyModule(config, memFs);
     const sassModule = new SassModule(config, memFs);
     const jsModule = new JsModule(config, memFs);
+    const svgModule = new SvgModule(config, memFs);
 
     /*
     // Pages
@@ -42,4 +44,9 @@ export async function build(config: Config, memFs: Filesystem) {
     // JavaScript
     */
     await jsModule.process();
+
+    /*
+    // SVG
+    */
+    await svgModule.process();
 }

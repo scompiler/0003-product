@@ -22,6 +22,7 @@ import { PagesModule } from "./modules/pages";
 import { JsModule } from "./modules/js";
 import { File } from "./types";
 import { Observable, OperatorFunction } from "rxjs";
+import { SvgModule } from "./modules/svg";
 
 export interface Config {
     port: number;
@@ -52,6 +53,11 @@ export interface Config {
     vars?: {
         [key: string]: any;
     },
+    svg?: {
+        src: string;
+        dst: string;
+        watch?: boolean;
+    }[];
 }
 
 function requireFromString(code, filename) {
@@ -304,4 +310,11 @@ export function createServer(config: Config) {
     const jsModule = new JsModule(config, fs);
 
     jsModule.process().then();
+
+    /*
+    // SVG
+    */
+    const svgModule = new SvgModule(config, fs, () => reload());
+
+    svgModule.process(true).then();
 }

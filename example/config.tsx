@@ -39,6 +39,9 @@ const config: Config = {
     vars: {
         dir: 'ltr',
     },
+    svg: [
+        {src: __dirname + '/src/svg/**/*.svg', dst: 'sprite.svg', watch: true},
+    ],
 };
 
 export default config;
