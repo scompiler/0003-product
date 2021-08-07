@@ -44,6 +44,7 @@ export interface Config {
     images: {
         src: string;
         dst: string;
+        middleware?: (source$: Observable<File>) => Observable<File>;
     };
     js?: {
         src: string;

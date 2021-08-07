@@ -1,8 +1,9 @@
 import { Config } from "../.scompiler/server";
 import rtlcss from "rtlcss";
 import { renameFileBasename } from "../.scompiler/rxjs";
-import { map, merge, mergeMap, of } from "rxjs";
+import { from, map, merge, mergeMap, of } from "rxjs";
 import prettier from "prettier";
+import { stubImage } from "@scompiler/stub-image";
 
 const config: Config = {
     port: 3006,
@@ -39,6 +40,9 @@ const config: Config = {
     images: {
         src: __dirname + '/src/images',
         dst: 'images',
+        middleware: source$ => source$.pipe(
+            mergeMap(x => from(stubImage(x.content, x.path)).pipe(map(y => ({...x, content: y})))),
+        ),
     },
     js: [
         {src: __dirname + '/src/test.js', dst: 'test.js'},

@@ -4,6 +4,8 @@ import path from "path";
 import isPathInside from "is-path-inside";
 import * as localFs from "fs";
 import Jimp from "jimp";
+import { File } from "../types";
+import { from, lastValueFrom } from "rxjs";
 
 export class ImagesModule {
     private registry: {
@@ -103,9 +105,17 @@ export class ImagesModule {
             buffer = await localFs.promises.readFile(srcPath);
         }
 
+        const file: File = {
+            path: dstPath,
+            content: buffer,
+            dependencies: [],
+        };
+        const middleware = this.config.images.middleware || (x => x);
+        const result = await lastValueFrom(middleware(from([file])));
+
         makeDir(this.fs, path.dirname(dstPath));
 
-        await this.fs.promises.writeFile(dstPath, buffer);
+        await this.fs.promises.writeFile(dstPath, result.content);
 
         onComplete();
     }
