@@ -1,3 +1,8 @@
+## Version 0.8.0 — 2021-08-07
+
+- feat: add the ability to post-process images
+
+
 ## Version 0.7.0 — 2021-08-06
 
 - feat: add the ability to post-process HTML files
