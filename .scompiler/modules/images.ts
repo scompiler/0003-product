@@ -36,7 +36,7 @@ export class ImagesModule {
         return (publicPath, w, h) => {
             publicPath = path.normalize(publicPath);
 
-            const imagesRoot = path.normalize(`/${this.config.images.dst}`);
+            const imagesRoot = path.normalize(this.config.images.dst);
 
             if (!isPathInside(publicPath, imagesRoot)) {
                 return publicPath.replace('\\', '/');
