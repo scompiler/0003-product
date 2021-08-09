@@ -1,3 +1,8 @@
+## Version 0.8.1 — 2021-08-09
+
+- fix: add support for relative image URLs
+
+
 ## Version 0.8.0 — 2021-08-07
 
 - feat: add the ability to post-process images
