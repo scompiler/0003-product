@@ -1,3 +1,8 @@
+## Version 0.8.2 — 2021-08-09
+
+- fix: build pages with SVG icons
+
+
 ## Version 0.8.1 — 2021-08-09
 
 - fix: add support for relative image URLs
