@@ -39,7 +39,7 @@ export class ImagesModule {
             const imagesRoot = path.normalize(this.config.images.dst);
 
             if (!isPathInside(publicPath, imagesRoot)) {
-                return publicPath.replace('\\', '/');
+                return publicPath.replace(/\\/g, '/');
             }
 
             const resizedPublicPath = this.getResizedImagePath(publicPath, w, h);
@@ -137,7 +137,7 @@ export class ImagesModule {
     getResizedImagePath(src, w, h) {
         const extname = path.extname(src);
         const filename = path.basename(src, extname);
-        const dirname = path.dirname(src).replace('\\', '/');
+        const dirname = path.dirname(src).replace(/\\/g, '/');
         const prefix = (w !== -1 || h !== -1) ? `-${w}x${h}` : '';
 
         return `${dirname}/${filename}${prefix}${extname}`;
