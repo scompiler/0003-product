@@ -1,3 +1,8 @@
+## Version 0.8.3 — 2021-08-11
+
+- fix: replace the backslash with a forward slash in the image paths
+
+
 ## Version 0.8.2 — 2021-08-09
 
 - fix: build pages with SVG icons
